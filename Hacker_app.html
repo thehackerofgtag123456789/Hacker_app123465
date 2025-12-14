@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<!-- FULLSCREEN + MOBILE -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+<title>Secure Terminal</title>
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  color: #00ff00;
+  font-family: monospace;
+  overflow: hidden;
+}
+
+/* TERMINAL */
+#terminal {
+  padding: 16px;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+/* MATRIX */
+#matrix {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* CENTER TEXT */
+.center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<div id="terminal">
+[BOOT] Initializing secure shell...
+[BOOT] Loading crypto modules...
+[BOOT] Establishing tunnel...
+
+> TYPE ANY KEYS TO CONTINUE
+</div>
+
+<div id="matrix">
+  <canvas id="canvas"></canvas>
+  <div class="center" id="matrixText">DECRYPTING DATA...</div>
+</div>
+
+<script>
+/* ---------- TERMINAL PHASE ---------- */
+let presses = 0;
+let unlocked = false;
+const terminal = document.getElementById("terminal");
+
+document.addEventListener("keydown", () => {
+  if (unlocked) return;
+
+  presses++;
+  terminal.innerHTML += "\n> " + fakeCommand();
+
+  if (presses >= 20) {
+    unlocked = true;
+    setTimeout(accessGranted, 800);
+  }
+
+  terminal.scrollTop = terminal.scrollHeight;
+});
+
+function fakeCommand() {
+  const cmds = [
+    "scanning ports...",
+    "injecting exploit...",
+    "bypassing firewall...",
+    "decrypting packets...",
+    "routing proxy...",
+    "spoofing address...",
+    "loading payload..."
+  ];
+  return cmds[Math.floor(Math.random() * cmds.length)];
+}
+
+function accessGranted() {
+  terminal.innerHTML += "\n\nACCESS GRANTED ✔";
+  terminal.innerHTML += "\nLaunching visual interface...";
+  setTimeout(startMatrix, 1200);
+}
+
+/* ---------- MATRIX PHASE ---------- */
+function startMatrix() {
+  document.getElementById("terminal").style.display = "none";
+  const matrix = document.getElementById("matrix");
+  matrix.style.display = "block";
+
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const letters = "01";
+  const fontSize = 16;
+  const columns = canvas.width / fontSize;
+  const drops = Array(Math.floor(columns)).fill(1);
+
+  function draw() {
+    ctx.fillStyle = "rgba(0,0,0,0.05)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#00ff00";
+    ctx.font = fontSize + "px monospace";
+
+    for (let i = 0; i < drops.length; i++) {
+      const text = letters[Math.floor(Math.random() * letters.length)];
+      ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.96) {
+        drops[i] = 0;
+      }
+      drops[i]++;
+    }
+  }
+
+  setInterval(draw, 33);
+  setTimeout(startMinigame, 4000);
+}
+
+/* ---------- MINIGAME ---------- */
+function startMinigame() {
+  document.body.innerHTML = `
+    <div id="terminal">
+TARGET SYSTEM LOCKED 🔒
+
+ENTER THE 4-DIGIT ACCESS CODE
+TYPE NUMBERS ONLY
+    </div>
+  `;
+
+  const terminal = document.getElementById("terminal");
+  const code = Math.floor(1000 + Math.random() * 9000).toString();
+  let input = "";
+
+  document.addEventListener("keydown", e => {
+    if (!/[0-9]/.test(e.key)) return;
+
+    input += e.key;
+    terminal.innerHTML += e.key;
+
+    if (input.length === 4) {
+      if (input === code) {
+        terminal.innerHTML += "\n\nSYSTEM BREACHED ✔";
+      } else {
+        terminal.innerHTML += "\n\nACCESS DENIED ✖\nTRY AGAIN\n";
+        input = "";
+      }
+    }
+  });
+}
+</script>
+
+</body>
+</html>
