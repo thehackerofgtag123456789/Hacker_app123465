@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Secure Terminal</title>
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  color: #00ff00;
+  font-family: monospace;
+  overflow: hidden;
+}
+
+#hiddenInput {
+  position: fixed;
+  opacity: 0;
+  height: 1px;
+  width: 1px;
+  border: none;
+}
+
+#terminal {
+  padding: 16px;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+#matrix {
+  position: fixed;
+  inset: 0;
+  display: none;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+button {
+  background: black;
+  border: 1px solid #00ff00;
+  color: #00ff00;
+  padding: 10px;
+  margin: 6px 0;
+  width: 100%;
+  font-family: monospace;
+}
+</style>
+</head>
+
+<body onclick="focusInput()">
+
+<input id="hiddenInput" type="text" autofocus>
+
+<div id="terminal">
+[BOOT] Initializing secure shell...
+[BOOT] Loading crypto modules...
+[BOOT] Establishing encrypted tunnel...
+
+TYPE ANYTHING TO CONTINUE
+</div>
+
+<div id="matrix">
+  <canvas id="canvas"></canvas>
+  <div class="center">DECRYPTING DATA...</div>
+</div>
+
+<script>
+const terminal = document.getElementById("terminal");
+const inputBox = document.getElementById("hiddenInput");
+
+let presses = 0;
+let unlocked = false;
+let mode = "terminal"; // terminal | password | dashboard
+
+const PASSWORD = "duckcoin";
+let typedPassword = "";
+
+function focusInput() {
+  inputBox.focus();
+}
+setInterval(focusInput, 400);
+
+inputBox.addEventListener("input", () => {
+  const value = inputBox.value;
+  inputBox.value = "";
+
+  if (mode === "terminal") handleTerminal();
+  if (mode === "password") handlePassword(value);
+});
+
+function handleTerminal() {
+  presses++;
+  terminal.innerHTML += "\n> " + fakeCommand();
+  terminal.scrollTop = terminal.scrollHeight;
+
+  if (presses >= 18) {
+    setTimeout(accessGranted, 800);
+    mode = "locked";
+  }
+}
+
+function fakeCommand() {
+  const cmds = [
+    "scanning ports...",
+    "injecting payload...",
+    "decrypting packets...",
+    "routing proxy...",
+    "spoofing address...",
+    "loading exploit..."
+  ];
+  return cmds[Math.floor(Math.random() * cmds.length)];
+}
+
+function accessGranted() {
+  terminal.innerHTML += "\n\nACCESS GRANTED ✔";
+  terminal.innerHTML += "\nLaunching visual interface...";
+  setTimeout(startMatrix, 1200);
+}
+
+function startMatrix() {
+  terminal.style.display = "none";
+  document.getElementById("matrix").style.display = "block";
+
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+
+  const chars = "01";
+  const fontSize = 16;
+  const cols = Math.floor(canvas.width / fontSize);
+  const drops = Array(cols).fill(1);
+
+  setInterval(() => {
+    ctx.fillStyle = "rgba(0,0,0,0.05)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#00ff00";
+    ctx.font = fontSize + "px monospace";
+
+    for (let i = 0; i < drops.length; i++) {
+      const text = chars[Math.floor(Math.random() * chars.length)];
+      ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.96) {
+        drops[i] = 0;
+      }
+      drops[i]++;
+    }
+  }, 33);
+
+  setTimeout(startPassword, 3500);
+}
+
+function startPassword() {
+  document.getElementById("matrix").style.display = "none";
+  terminal.style.display = "block";
+  terminal.innerHTML = "TARGET NODE LOCKED 🔒\n\nENTER PASSWORD:\n";
+  mode = "password";
+  typedPassword = "";
+}
+
+function handlePassword(val) {
+  const clean = val.toLowerCase().replace(/[^a-z]/g, "");
+  typedPassword += clean;
+  terminal.innerHTML += "*".repeat(clean.length);
+
+  if (typedPassword.length >= PASSWORD.length) {
+    if (typedPassword === PASSWORD) {
+      accessConfirmed();
+    } else {
+      terminal.innerHTML += "\n\nACCESS DENIED ✖\n\nENTER PASSWORD:\n";
+      typedPassword = "";
+    }
+  }
+}
+
+/* 🔥 WHAT HAPPENS AFTER PASSWORD */
+function accessConfirmed() {
+  mode = "dashboard";
+  terminal.innerHTML =
+`ACCESS CONFIRMED ✔
+WELCOME, OPERATOR
+
+INITIALIZING CONTROL PANEL...
+`;
+
+  setTimeout(showDashboard, 1500);
+}
+
+function showDashboard() {
+  terminal.innerHTML =
+`=== HACKER CONTROL PANEL ===
+
+SYSTEM STATUS: ONLINE
+ENCRYPTION: ACTIVE
+TRACE LEVEL: 0%
+
+`;
+
+  terminal.innerHTML += `
+<button onclick="fakeScan()">RUN SYSTEM SCAN</button>
+<button onclick="fakeTrace()">TRACE TARGET</button>
+<button onclick="fakeShutdown()">DISCONNECT</button>
+`;
+}
+
+function fakeScan() {
+  terminal.innerHTML += "\n[SCAN] Running deep scan...\n[SCAN] No threats detected ✔\n";
+}
+
+function fakeTrace() {
+  terminal.innerHTML += "\n[TRACE] Locating target...\n[TRACE] Signal masked ✔\n";
+}
+
+function fakeShutdown() {
+  terminal.innerHTML += "\n[SYS] Disconnecting...\nSESSION CLOSED.\n";
+}
+</script>
+
+</body>
+</html>
