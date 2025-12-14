@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Secure Terminal</title>
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  color: #00ff00;
+  font-family: monospace;
+  overflow: hidden;
+}
+
+/* ANDROID KEYBOARD FIX */
+#hiddenInput {
+  position: fixed;
+  opacity: 0;
+  height: 1px;
+  width: 1px;
+  border: none;
+}
+
+/* TERMINAL */
+#terminal {
+  padding: 16px;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+/* MATRIX */
+#matrix {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+</style>
+</head>
+
+<body onclick="focusInput()">
+
+<input id="hiddenInput" type="text" autofocus>
+
+<div id="terminal">
+[BOOT] Initializing secure shell...
+[BOOT] Loading crypto modules...
+[BOOT] Establishing encrypted tunnel...
+
+TYPE ANYTHING TO CONTINUE
+</div>
+
+<div id="matrix">
+  <canvas id="canvas"></canvas>
+  <div class="center">DECRYPTING DATA...</div>
+</div>
+
+<script>
+const terminal = document.getElementById("terminal");
+const inputBox = document.getElementById("hiddenInput");
+
+let presses = 0;
+let unlocked = false;
+let mode = "terminal"; // terminal | password
+
+const PASSWORD = "duckcoin";
+let typedPassword = "";
+
+/* FORCE KEYBOARD */
+function focusInput() {
+  inputBox.focus();
+}
+setInterval(focusInput, 400);
+
+/* INPUT HANDLER */
+inputBox.addEventListener("input", () => {
+  const value = inputBox.value;
+  inputBox.value = "";
+
+  if (mode === "terminal") handleTerminal();
+  if (mode === "password") handlePassword(value);
+});
+
+/* TERMINAL MODE */
+function handleTerminal() {
+  if (unlocked) return;
+
+  presses++;
+  terminal.innerHTML += "\n> " + fakeCommand();
+  terminal.scrollTop = terminal.scrollHeight;
+
+  if (presses >= 18) {
+    unlocked = true;
+    setTimeout(accessGranted, 800);
+  }
+}
+
+function fakeCommand() {
+  const cmds = [
+    "scanning ports...",
+    "injecting payload...",
+    "decrypting packets...",
+    "bypassing firewall...",
+    "routing proxy...",
+    "spoofing address...",
+    "loading exploit..."
+  ];
+  return cmds[Math.floor(Math.random() * cmds.length)];
+}
+
+/* ACCESS GRANTED */
+function accessGranted() {
+  terminal.innerHTML += "\n\nACCESS GRANTED ✔";
+  terminal.innerHTML += "\nLaunching visual interface...";
+  setTimeout(startMatrix, 1200);
+}
+
+/* MATRIX */
+function startMatrix() {
+  terminal.style.display = "none";
+  document.getElementById("matrix").style.display = "block";
+
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const chars = "01";
+  const fontSize = 16;
+  const columns = Math.floor(canvas.width / fontSize);
+  const drops = Array(columns).fill(1);
+
+  setInterval(() => {
+    ctx.fillStyle = "rgba(0,0,0,0.05)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#00ff00";
+    ctx.font = fontSize + "px monospace";
+
+    for (let i = 0; i < drops.length; i++) {
+      const text = chars[Math.floor(Math.random() * chars.length)];
+      ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.96) {
+        drops[i] = 0;
+      }
+      drops[i]++;
+    }
+  }, 33);
+
+  setTimeout(startPassword, 4000);
+}
+
+/* PASSWORD SCREEN */
+function startPassword() {
+  document.getElementById("matrix").style.display = "none";
+  terminal.style.display = "block";
+
+  terminal.innerHTML =
+`TARGET NODE LOCKED 🔒
+
+ENTER PASSWORD:
+`;
+
+  mode = "password";
+  typedPassword = "";
+}
+
+/* PASSWORD INPUT */
+function handlePassword(val) {
+  const clean = val.toLowerCase().replace(/[^a-z]/g, "");
+  typedPassword += clean;
+
+  terminal.innerHTML += "*".repeat(clean.length);
+
+  if (typedPassword.length >= PASSWORD.length) {
+    if (typedPassword === PASSWORD) {
+      terminal.innerHTML += "\n\nSYSTEM BREACHED ✔";
+      terminal.innerHTML += "\nWELCOME, OPERATOR.";
+    } else {
+      terminal.innerHTML += "\n\nACCESS DENIED ✖";
+      terminal.innerHTML += "\nTRY AGAIN\n\nENTER PASSWORD:\n";
+      typedPassword = "";
+    }
+  }
+}
+</script>
+
+</body>
+</html>
