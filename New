@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Secure Terminal</title>
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  color: #00ff00;
+  font-family: monospace;
+  overflow: hidden;
+}
+
+/* hidden input for android keyboard */
+#hiddenInput {
+  position: absolute;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  border: none;
+}
+
+/* terminal */
+#terminal {
+  padding: 16px;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+/* matrix */
+#matrix {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #00ff00;
+}
+</style>
+</head>
+
+<body onclick="focusInput()">
+
+<input id="hiddenInput" type="text" autofocus>
+
+<div id="terminal">
+[BOOT] Initializing secure shell...
+[BOOT] Loading modules...
+[BOOT] Establishing encrypted link...
+
+TYPE ANYTHING TO CONTINUE
+</div>
+
+<div id="matrix">
+  <canvas id="canvas"></canvas>
+  <div class="center">DECRYPTING DATA...</div>
+</div>
+
+<script>
+const terminal = document.getElementById("terminal");
+const inputBox = document.getElementById("hiddenInput");
+
+let presses = 0;
+let unlocked = false;
+
+/* keep keyboard open */
+function focusInput() {
+  inputBox.focus();
+}
+focusInput();
+
+/* -------- TERMINAL INPUT -------- */
+inputBox.addEventListener("input", () => {
+  if (unlocked) return;
+
+  presses++;
+  terminal.innerHTML += "\n> " + fakeCommand();
+  inputBox.value = "";
+
+  terminal.scrollTop = terminal.scrollHeight;
+
+  if (presses >= 18) {
+    unlocked = true;
+    setTimeout(accessGranted, 800);
+  }
+});
+
+function fakeCommand() {
+  const cmds = [
+    "scanning ports...",
+    "injecting payload...",
+    "decrypting packets...",
+    "bypassing firewall...",
+    "routing proxy...",
+    "spoofing address...",
+    "loading exploit..."
+  ];
+  return cmds[Math.floor(Math.random() * cmds.length)];
+}
+
+/* -------- ACCESS GRANTED -------- */
+function accessGranted() {
+  terminal.innerHTML += "\n\nACCESS GRANTED ✔";
+  terminal.innerHTML += "\nLaunching interface...";
+  setTimeout(startMatrix, 1200);
+}
+
+/* -------- MATRIX EFFECT -------- */
+function startMatrix() {
+  terminal.style.display = "none";
+  document.getElementById("matrix").style.display = "block";
+
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const chars = "01";
+  const fontSize = 16;
+  const columns = Math.floor(canvas.width / fontSize);
+  const drops = Array(columns).fill(1);
+
+  setInterval(() => {
+    ctx.fillStyle = "rgba(0,0,0,0.05)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#00ff00";
+    ctx.font = fontSize + "px monospace";
+
+    for (let i = 0; i < drops.length; i++) {
+      const text = chars[Math.floor(Math.random() * chars.length)];
+      ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.96) {
+        drops[i] = 0;
+      }
+      drops[i]++;
+    }
+  }, 33);
+
+  setTimeout(startMinigame, 4000);
+}
+
+/* -------- MINIGAME -------- */
+function startMinigame() {
+  document.body.innerHTML = `
+    <input id="hiddenInput" type="text" autofocus>
+    <div id="terminal">
+TARGET NODE LOCKED 🔒
+
+ENTER 4-DIGIT ACCESS CODE
+    </div>
+  `;
+
+  const terminal = document.getElementById("terminal");
+  const inputBox = document.getElementById("hiddenInput");
+  inputBox.focus();
+
+  const code = Math.floor(1000 + Math.random() * 9000).toString();
+  let entered = "";
+
+  inputBox.addEventListener("input", () => {
+    const val = inputBox.value.replace(/\\D/g, "");
+    inputBox.value = "";
+
+    entered += val;
+    terminal.innerHTML += val;
+
+    if (entered.length >= 4) {
+      if (entered === code) {
+        terminal.innerHTML += "\n\nSYSTEM BREACHED ✔";
+      } else {
+        terminal.innerHTML += "\n\nACCESS DENIED ✖\nTRY AGAIN\n";
+        entered = "";
+      }
+    }
+  });
+}
+</script>
+
+</body>
+</html>
